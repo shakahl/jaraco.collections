@@ -22,32 +22,32 @@ import jaraco.text
 
 class Projection(collections.abc.Mapping):
     """
-	Project a set of keys over a mapping
+    Project a set of keys over a mapping
 
-	>>> sample = {'a': 1, 'b': 2, 'c': 3}
-	>>> prj = Projection(['a', 'c', 'd'], sample)
-	>>> prj == {'a': 1, 'c': 3}
-	True
+    >>> sample = {'a': 1, 'b': 2, 'c': 3}
+    >>> prj = Projection(['a', 'c', 'd'], sample)
+    >>> prj == {'a': 1, 'c': 3}
+    True
 
-	Keys should only appear if they were specified and exist in the space.
+    Keys should only appear if they were specified and exist in the space.
 
-	>>> sorted(list(prj.keys()))
-	['a', 'c']
+    >>> sorted(list(prj.keys()))
+    ['a', 'c']
 
-	Use the projection to update another dict.
+    Use the projection to update another dict.
 
-	>>> target = {'a': 2, 'b': 2}
-	>>> target.update(prj)
-	>>> target == {'a': 1, 'b': 2, 'c': 3}
-	True
+    >>> target = {'a': 2, 'b': 2}
+    >>> target.update(prj)
+    >>> target == {'a': 1, 'b': 2, 'c': 3}
+    True
 
-	Also note that Projection keeps a reference to the original dict, so
-	if you modify the original dict, that could modify the Projection.
+    Also note that Projection keeps a reference to the original dict, so
+    if you modify the original dict, that could modify the Projection.
 
-	>>> del sample['a']
-	>>> dict(prj)
-	{'c': 3}
-	"""
+    >>> del sample['a']
+    >>> dict(prj)
+    {'c': 3}
+    """
 
     def __init__(self, keys, space):
         self._keys = tuple(keys)
@@ -67,33 +67,33 @@ class Projection(collections.abc.Mapping):
 
 class DictFilter(object):
     """
-	Takes a dict, and simulates a sub-dict based on the keys.
+    Takes a dict, and simulates a sub-dict based on the keys.
 
-	>>> sample = {'a': 1, 'b': 2, 'c': 3}
-	>>> filtered = DictFilter(sample, ['a', 'c'])
-	>>> filtered == {'a': 1, 'c': 3}
-	True
+    >>> sample = {'a': 1, 'b': 2, 'c': 3}
+    >>> filtered = DictFilter(sample, ['a', 'c'])
+    >>> filtered == {'a': 1, 'c': 3}
+    True
 
-	One can also filter by a regular expression pattern
+    One can also filter by a regular expression pattern
 
-	>>> sample['d'] = 4
-	>>> sample['ef'] = 5
+    >>> sample['d'] = 4
+    >>> sample['ef'] = 5
 
-	Here we filter for only single-character keys
+    Here we filter for only single-character keys
 
-	>>> filtered = DictFilter(sample, include_pattern='.$')
-	>>> filtered == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
-	True
+    >>> filtered = DictFilter(sample, include_pattern='.$')
+    >>> filtered == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+    True
 
-	Also note that DictFilter keeps a reference to the original dict, so
-	if you modify the original dict, that could modify the filtered dict.
+    Also note that DictFilter keeps a reference to the original dict, so
+    if you modify the original dict, that could modify the filtered dict.
 
-	>>> del sample['d']
-	>>> del sample['a']
-	>>> filtered == {'b': 2, 'c': 3}
-	True
+    >>> del sample['d']
+    >>> del sample['a']
+    >>> filtered == {'b': 2, 'c': 3}
+    True
 
-	"""
+    """
 
     def __init__(self, dict, include_keys=[], include_pattern=None):
         self.dict = dict
@@ -141,80 +141,80 @@ class DictFilter(object):
 
 def dict_map(function, dictionary):
     """
-	dict_map is much like the built-in function map.  It takes a dictionary
-	and applys a function to the values of that dictionary, returning a
-	new dictionary with the mapped values in the original keys.
+    dict_map is much like the built-in function map.  It takes a dictionary
+    and applys a function to the values of that dictionary, returning a
+    new dictionary with the mapped values in the original keys.
 
-	>>> d = dict_map(lambda x:x+1, dict(a=1, b=2))
-	>>> d == dict(a=2,b=3)
-	True
-	"""
+    >>> d = dict_map(lambda x:x+1, dict(a=1, b=2))
+    >>> d == dict(a=2,b=3)
+    True
+    """
     return dict((key, function(value)) for key, value in dictionary.items())
 
 
 class RangeMap(dict):
     """
-	A dictionary-like object that uses the keys as bounds for a range.
-	Inclusion of the value for that range is determined by the
-	key_match_comparator, which defaults to less-than-or-equal.
-	A value is returned for a key if it is the first key that matches in
-	the sorted list of keys.
+    A dictionary-like object that uses the keys as bounds for a range.
+    Inclusion of the value for that range is determined by the
+    key_match_comparator, which defaults to less-than-or-equal.
+    A value is returned for a key if it is the first key that matches in
+    the sorted list of keys.
 
-	One may supply keyword parameters to be passed to the sort function used
-	to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.
+    One may supply keyword parameters to be passed to the sort function used
+    to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.
 
-	Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
+    Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
 
-	>>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
-	>>> r[1], r[2], r[3], r[4], r[5], r[6]
-	('a', 'a', 'a', 'b', 'b', 'b')
+    >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
+    >>> r[1], r[2], r[3], r[4], r[5], r[6]
+    ('a', 'a', 'a', 'b', 'b', 'b')
 
-	Even float values should work so long as the comparison operator
-	supports it.
+    Even float values should work so long as the comparison operator
+    supports it.
 
-	>>> r[4.5]
-	'b'
+    >>> r[4.5]
+    'b'
 
-	But you'll notice that the way rangemap is defined, it must be open-ended
-	on one side.
+    But you'll notice that the way rangemap is defined, it must be open-ended
+    on one side.
 
-	>>> r[0]
-	'a'
-	>>> r[-1]
-	'a'
+    >>> r[0]
+    'a'
+    >>> r[-1]
+    'a'
 
-	One can close the open-end of the RangeMap by using undefined_value
+    One can close the open-end of the RangeMap by using undefined_value
 
-	>>> r = RangeMap({0: RangeMap.undefined_value, 3: 'a', 6: 'b'})
-	>>> r[0]
-	Traceback (most recent call last):
-	...
-	KeyError: 0
+    >>> r = RangeMap({0: RangeMap.undefined_value, 3: 'a', 6: 'b'})
+    >>> r[0]
+    Traceback (most recent call last):
+    ...
+    KeyError: 0
 
-	One can get the first or last elements in the range by using RangeMap.Item
+    One can get the first or last elements in the range by using RangeMap.Item
 
-	>>> last_item = RangeMap.Item(-1)
-	>>> r[last_item]
-	'b'
+    >>> last_item = RangeMap.Item(-1)
+    >>> r[last_item]
+    'b'
 
-	.last_item is a shortcut for Item(-1)
+    .last_item is a shortcut for Item(-1)
 
-	>>> r[RangeMap.last_item]
-	'b'
+    >>> r[RangeMap.last_item]
+    'b'
 
-	Sometimes it's useful to find the bounds for a RangeMap
+    Sometimes it's useful to find the bounds for a RangeMap
 
-	>>> r.bounds()
-	(0, 6)
+    >>> r.bounds()
+    (0, 6)
 
-	RangeMap supports .get(key, default)
+    RangeMap supports .get(key, default)
 
-	>>> r.get(0, 'not found')
-	'not found'
+    >>> r.get(0, 'not found')
+    'not found'
 
-	>>> r.get(7, 'not found')
-	'not found'
-	"""
+    >>> r.get(7, 'not found')
+    'not found'
+    """
 
     def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
         dict.__init__(self, source)
@@ -234,10 +234,10 @@ class RangeMap(dict):
 
     def get(self, key, default=None):
         """
-		Return the value for key if key is in the dictionary, else default.
-		If default is not given, it defaults to None, so that this method
-		never raises a KeyError.
-		"""
+        Return the value for key if key is in the dictionary, else default.
+        If default is not given, it defaults to None, so that this method
+        never raises a KeyError.
+        """
         try:
             return self[key]
         except KeyError:
@@ -271,19 +271,19 @@ def __identity(x):
 
 def sorted_items(d, key=__identity, reverse=False):
     """
-	Return the items of the dictionary sorted by the keys
+    Return the items of the dictionary sorted by the keys
 
-	>>> sample = dict(foo=20, bar=42, baz=10)
-	>>> tuple(sorted_items(sample))
-	(('bar', 42), ('baz', 10), ('foo', 20))
+    >>> sample = dict(foo=20, bar=42, baz=10)
+    >>> tuple(sorted_items(sample))
+    (('bar', 42), ('baz', 10), ('foo', 20))
 
-	>>> reverse_string = lambda s: ''.join(reversed(s))
-	>>> tuple(sorted_items(sample, key=reverse_string))
-	(('foo', 20), ('bar', 42), ('baz', 10))
+    >>> reverse_string = lambda s: ''.join(reversed(s))
+    >>> tuple(sorted_items(sample, key=reverse_string))
+    (('foo', 20), ('bar', 42), ('baz', 10))
 
-	>>> tuple(sorted_items(sample, reverse=True))
-	(('foo', 20), ('baz', 10), ('bar', 42))
-	"""
+    >>> tuple(sorted_items(sample, reverse=True))
+    (('foo', 20), ('baz', 10), ('bar', 42))
+    """
     # wrap the key func so it operates on the first element of each item
     def pairkey_key(item):
         return key(item[0])
@@ -293,9 +293,9 @@ def sorted_items(d, key=__identity, reverse=False):
 
 class KeyTransformingDict(dict):
     """
-	A dict subclass that transforms the keys before they're used.
-	Subclasses may override the default transform_key to customize behavior.
-	"""
+    A dict subclass that transforms the keys before they're used.
+    Subclasses may override the default transform_key to customize behavior.
+    """
 
     @staticmethod
     def transform_key(key):
@@ -339,9 +339,9 @@ class KeyTransformingDict(dict):
 
     def matching_key_for(self, key):
         """
-		Given a key, return the actual key stored in self that matches.
-		Raise KeyError if the key isn't found.
-		"""
+        Given a key, return the actual key stored in self that matches.
+        Raise KeyError if the key isn't found.
+        """
         try:
             return next(e_key for e_key in self.keys() if e_key == key)
         except StopIteration:
@@ -350,73 +350,73 @@ class KeyTransformingDict(dict):
 
 class FoldedCaseKeyedDict(KeyTransformingDict):
     """
-	A case-insensitive dictionary (keys are compared as insensitive
-	if they are strings).
+    A case-insensitive dictionary (keys are compared as insensitive
+    if they are strings).
 
-	>>> d = FoldedCaseKeyedDict()
-	>>> d['heLlo'] = 'world'
-	>>> list(d.keys()) == ['heLlo']
-	True
-	>>> list(d.values()) == ['world']
-	True
-	>>> d['hello'] == 'world'
-	True
-	>>> 'hello' in d
-	True
-	>>> 'HELLO' in d
-	True
-	>>> print(repr(FoldedCaseKeyedDict({'heLlo': 'world'})).replace("u'", "'"))
-	{'heLlo': 'world'}
-	>>> d = FoldedCaseKeyedDict({'heLlo': 'world'})
-	>>> print(d['hello'])
-	world
-	>>> print(d['Hello'])
-	world
-	>>> list(d.keys())
-	['heLlo']
-	>>> d = FoldedCaseKeyedDict({'heLlo': 'world', 'Hello': 'world'})
-	>>> list(d.values())
-	['world']
-	>>> key, = d.keys()
-	>>> key in ['heLlo', 'Hello']
-	True
-	>>> del d['HELLO']
-	>>> d
-	{}
+    >>> d = FoldedCaseKeyedDict()
+    >>> d['heLlo'] = 'world'
+    >>> list(d.keys()) == ['heLlo']
+    True
+    >>> list(d.values()) == ['world']
+    True
+    >>> d['hello'] == 'world'
+    True
+    >>> 'hello' in d
+    True
+    >>> 'HELLO' in d
+    True
+    >>> print(repr(FoldedCaseKeyedDict({'heLlo': 'world'})).replace("u'", "'"))
+    {'heLlo': 'world'}
+    >>> d = FoldedCaseKeyedDict({'heLlo': 'world'})
+    >>> print(d['hello'])
+    world
+    >>> print(d['Hello'])
+    world
+    >>> list(d.keys())
+    ['heLlo']
+    >>> d = FoldedCaseKeyedDict({'heLlo': 'world', 'Hello': 'world'})
+    >>> list(d.values())
+    ['world']
+    >>> key, = d.keys()
+    >>> key in ['heLlo', 'Hello']
+    True
+    >>> del d['HELLO']
+    >>> d
+    {}
 
-	get should work
+    get should work
 
-	>>> d['Sumthin'] = 'else'
-	>>> d.get('SUMTHIN')
-	'else'
-	>>> d.get('OTHER', 'thing')
-	'thing'
-	>>> del d['sumthin']
+    >>> d['Sumthin'] = 'else'
+    >>> d.get('SUMTHIN')
+    'else'
+    >>> d.get('OTHER', 'thing')
+    'thing'
+    >>> del d['sumthin']
 
-	setdefault should also work
+    setdefault should also work
 
-	>>> d['This'] = 'that'
-	>>> print(d.setdefault('this', 'other'))
-	that
-	>>> len(d)
-	1
-	>>> print(d['this'])
-	that
-	>>> print(d.setdefault('That', 'other'))
-	other
-	>>> print(d['THAT'])
-	other
+    >>> d['This'] = 'that'
+    >>> print(d.setdefault('this', 'other'))
+    that
+    >>> len(d)
+    1
+    >>> print(d['this'])
+    that
+    >>> print(d.setdefault('That', 'other'))
+    other
+    >>> print(d['THAT'])
+    other
 
-	Make it pop!
+    Make it pop!
 
-	>>> print(d.pop('THAT'))
-	other
+    >>> print(d.pop('THAT'))
+    other
 
-	To retrieve the key in its originally-supplied form, use matching_key_for
+    To retrieve the key in its originally-supplied form, use matching_key_for
 
-	>>> print(d.matching_key_for('this'))
-	This
-	"""
+    >>> print(d.matching_key_for('this'))
+    This
+    """
 
     @staticmethod
     def transform_key(key):
@@ -425,15 +425,15 @@ class FoldedCaseKeyedDict(KeyTransformingDict):
 
 class DictAdapter(object):
     """
-	Provide a getitem interface for attributes of an object.
+    Provide a getitem interface for attributes of an object.
 
-	Let's say you want to get at the string.lowercase property in a formatted
-	string. It's easy with DictAdapter.
+    Let's say you want to get at the string.lowercase property in a formatted
+    string. It's easy with DictAdapter.
 
-	>>> import string
-	>>> print("lowercase is %(ascii_lowercase)s" % DictAdapter(string))
-	lowercase is abcdefghijklmnopqrstuvwxyz
-	"""
+    >>> import string
+    >>> print("lowercase is %(ascii_lowercase)s" % DictAdapter(string))
+    lowercase is abcdefghijklmnopqrstuvwxyz
+    """
 
     def __init__(self, wrapped_ob):
         self.object = wrapped_ob
@@ -444,48 +444,48 @@ class DictAdapter(object):
 
 class ItemsAsAttributes(object):
     """
-	Mix-in class to enable a mapping object to provide items as
-	attributes.
+    Mix-in class to enable a mapping object to provide items as
+    attributes.
 
-	>>> C = type(str('C'), (dict, ItemsAsAttributes), dict())
-	>>> i = C()
-	>>> i['foo'] = 'bar'
-	>>> i.foo
-	'bar'
+    >>> C = type(str('C'), (dict, ItemsAsAttributes), dict())
+    >>> i = C()
+    >>> i['foo'] = 'bar'
+    >>> i.foo
+    'bar'
 
-	Natural attribute access takes precedence
+    Natural attribute access takes precedence
 
-	>>> i.foo = 'henry'
-	>>> i.foo
-	'henry'
+    >>> i.foo = 'henry'
+    >>> i.foo
+    'henry'
 
-	But as you might expect, the mapping functionality is preserved.
+    But as you might expect, the mapping functionality is preserved.
 
-	>>> i['foo']
-	'bar'
+    >>> i['foo']
+    'bar'
 
-	A normal attribute error should be raised if an attribute is
-	requested that doesn't exist.
+    A normal attribute error should be raised if an attribute is
+    requested that doesn't exist.
 
-	>>> i.missing
-	Traceback (most recent call last):
-	...
-	AttributeError: 'C' object has no attribute 'missing'
+    >>> i.missing
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'C' object has no attribute 'missing'
 
-	It also works on dicts that customize __getitem__
+    It also works on dicts that customize __getitem__
 
-	>>> missing_func = lambda self, key: 'missing item'
-	>>> C = type(
-	...     str('C'),
-	...     (dict, ItemsAsAttributes),
-	...     dict(__missing__ = missing_func),
-	... )
-	>>> i = C()
-	>>> i.missing
-	'missing item'
-	>>> i.foo
-	'missing item'
-	"""
+    >>> missing_func = lambda self, key: 'missing item'
+    >>> C = type(
+    ...     str('C'),
+    ...     (dict, ItemsAsAttributes),
+    ...     dict(__missing__ = missing_func),
+    ... )
+    >>> i = C()
+    >>> i.missing
+    'missing item'
+    >>> i.foo
+    'missing item'
+    """
 
     def __getattr__(self, key):
         try:
@@ -514,20 +514,20 @@ class ItemsAsAttributes(object):
 
 def invert_map(map):
     """
-	Given a dictionary, return another dictionary with keys and values
-	switched. If any of the values resolve to the same key, raises
-	a ValueError.
+    Given a dictionary, return another dictionary with keys and values
+    switched. If any of the values resolve to the same key, raises
+    a ValueError.
 
-	>>> numbers = dict(a=1, b=2, c=3)
-	>>> letters = invert_map(numbers)
-	>>> letters[1]
-	'a'
-	>>> numbers['d'] = 3
-	>>> invert_map(numbers)
-	Traceback (most recent call last):
-	...
-	ValueError: Key conflict in inverted mapping
-	"""
+    >>> numbers = dict(a=1, b=2, c=3)
+    >>> letters = invert_map(numbers)
+    >>> letters[1]
+    'a'
+    >>> numbers['d'] = 3
+    >>> invert_map(numbers)
+    Traceback (most recent call last):
+    ...
+    ValueError: Key conflict in inverted mapping
+    """
     res = dict((v, k) for k, v in map.items())
     if not len(res) == len(map):
         raise ValueError('Key conflict in inverted mapping')
@@ -536,16 +536,16 @@ def invert_map(map):
 
 class IdentityOverrideMap(dict):
     """
-	A dictionary that by default maps each key to itself, but otherwise
-	acts like a normal dictionary.
+    A dictionary that by default maps each key to itself, but otherwise
+    acts like a normal dictionary.
 
-	>>> d = IdentityOverrideMap()
-	>>> d[42]
-	42
-	>>> d['speed'] = 'speedo'
-	>>> print(d['speed'])
-	speedo
-	"""
+    >>> d = IdentityOverrideMap()
+    >>> d[42]
+    42
+    >>> d['speed'] = 'speedo'
+    >>> print(d['speed'])
+    speedo
+    """
 
     def __missing__(self, key):
         return key
@@ -553,29 +553,29 @@ class IdentityOverrideMap(dict):
 
 class DictStack(list, collections.abc.Mapping):
     """
-	A stack of dictionaries that behaves as a view on those dictionaries,
-	giving preference to the last.
+    A stack of dictionaries that behaves as a view on those dictionaries,
+    giving preference to the last.
 
-	>>> stack = DictStack([dict(a=1, c=2), dict(b=2, a=2)])
-	>>> stack['a']
-	2
-	>>> stack['b']
-	2
-	>>> stack['c']
-	2
-	>>> stack.push(dict(a=3))
-	>>> stack['a']
-	3
-	>>> set(stack.keys()) == set(['a', 'b', 'c'])
-	True
-	>>> d = stack.pop()
-	>>> stack['a']
-	2
-	>>> d = stack.pop()
-	>>> stack['a']
-	1
-	>>> stack.get('b', None)
-	"""
+    >>> stack = DictStack([dict(a=1, c=2), dict(b=2, a=2)])
+    >>> stack['a']
+    2
+    >>> stack['b']
+    2
+    >>> stack['c']
+    2
+    >>> stack.push(dict(a=3))
+    >>> stack['a']
+    3
+    >>> set(stack.keys()) == set(['a', 'b', 'c'])
+    True
+    >>> d = stack.pop()
+    >>> stack['a']
+    2
+    >>> d = stack.pop()
+    >>> stack['a']
+    1
+    >>> stack.get('b', None)
+    """
 
     def keys(self):
         return list(set(itertools.chain.from_iterable(c.keys() for c in self)))
@@ -591,65 +591,65 @@ class DictStack(list, collections.abc.Mapping):
 
 class BijectiveMap(dict):
     """
-	A Bijective Map (two-way mapping).
+    A Bijective Map (two-way mapping).
 
-	Implemented as a simple dictionary of 2x the size, mapping values back
-	to keys.
+    Implemented as a simple dictionary of 2x the size, mapping values back
+    to keys.
 
-	Note, this implementation may be incomplete. If there's not a test for
-	your use case below, it's likely to fail, so please test and send pull
-	requests or patches for additional functionality needed.
+    Note, this implementation may be incomplete. If there's not a test for
+    your use case below, it's likely to fail, so please test and send pull
+    requests or patches for additional functionality needed.
 
 
-	>>> m = BijectiveMap()
-	>>> m['a'] = 'b'
-	>>> m == {'a': 'b', 'b': 'a'}
-	True
-	>>> print(m['b'])
-	a
+    >>> m = BijectiveMap()
+    >>> m['a'] = 'b'
+    >>> m == {'a': 'b', 'b': 'a'}
+    True
+    >>> print(m['b'])
+    a
 
-	>>> m['c'] = 'd'
-	>>> len(m)
-	2
+    >>> m['c'] = 'd'
+    >>> len(m)
+    2
 
-	Some weird things happen if you map an item to itself or overwrite a
-	single key of a pair, so it's disallowed.
+    Some weird things happen if you map an item to itself or overwrite a
+    single key of a pair, so it's disallowed.
 
-	>>> m['e'] = 'e'
-	Traceback (most recent call last):
-	ValueError: Key cannot map to itself
+    >>> m['e'] = 'e'
+    Traceback (most recent call last):
+    ValueError: Key cannot map to itself
 
-	>>> m['d'] = 'e'
-	Traceback (most recent call last):
-	ValueError: Key/Value pairs may not overlap
+    >>> m['d'] = 'e'
+    Traceback (most recent call last):
+    ValueError: Key/Value pairs may not overlap
 
-	>>> m['e'] = 'd'
-	Traceback (most recent call last):
-	ValueError: Key/Value pairs may not overlap
+    >>> m['e'] = 'd'
+    Traceback (most recent call last):
+    ValueError: Key/Value pairs may not overlap
 
-	>>> print(m.pop('d'))
-	c
+    >>> print(m.pop('d'))
+    c
 
-	>>> 'c' in m
-	False
+    >>> 'c' in m
+    False
 
-	>>> m = BijectiveMap(dict(a='b'))
-	>>> len(m)
-	1
-	>>> print(m['b'])
-	a
+    >>> m = BijectiveMap(dict(a='b'))
+    >>> len(m)
+    1
+    >>> print(m['b'])
+    a
 
-	>>> m = BijectiveMap()
-	>>> m.update(a='b')
-	>>> m['b']
-	'a'
+    >>> m = BijectiveMap()
+    >>> m.update(a='b')
+    >>> m['b']
+    'a'
 
-	>>> del m['b']
-	>>> len(m)
-	0
-	>>> 'a' in m
-	False
-	"""
+    >>> del m['b']
+    >>> len(m)
+    0
+    >>> 'a' in m
+    False
+    """
 
     def __init__(self, *args, **kwargs):
         super(BijectiveMap, self).__init__()
@@ -690,46 +690,46 @@ class BijectiveMap(dict):
 
 class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
     """
-	An immutable mapping.
+    An immutable mapping.
 
-	>>> a = FrozenDict(a=1, b=2)
-	>>> b = FrozenDict(a=1, b=2)
-	>>> a == b
-	True
+    >>> a = FrozenDict(a=1, b=2)
+    >>> b = FrozenDict(a=1, b=2)
+    >>> a == b
+    True
 
-	>>> a == dict(a=1, b=2)
-	True
-	>>> dict(a=1, b=2) == a
-	True
+    >>> a == dict(a=1, b=2)
+    True
+    >>> dict(a=1, b=2) == a
+    True
 
-	>>> a['c'] = 3
-	Traceback (most recent call last):
-	...
-	TypeError: 'FrozenDict' object does not support item assignment
+    >>> a['c'] = 3
+    Traceback (most recent call last):
+    ...
+    TypeError: 'FrozenDict' object does not support item assignment
 
-	>>> a.update(y=3)
-	Traceback (most recent call last):
-	...
-	AttributeError: 'FrozenDict' object has no attribute 'update'
+    >>> a.update(y=3)
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'FrozenDict' object has no attribute 'update'
 
-	Copies should compare equal
+    Copies should compare equal
 
-	>>> copy.copy(a) == a
-	True
+    >>> copy.copy(a) == a
+    True
 
-	Copies should be the same type
+    Copies should be the same type
 
-	>>> isinstance(copy.copy(a), FrozenDict)
-	True
+    >>> isinstance(copy.copy(a), FrozenDict)
+    True
 
-	FrozenDict supplies .copy(), even though
-	collections.abc.Mapping doesn't demand it.
+    FrozenDict supplies .copy(), even though
+    collections.abc.Mapping doesn't demand it.
 
-	>>> a.copy() == a
-	True
-	>>> a.copy() is not a
-	True
-	"""
+    >>> a.copy() == a
+    True
+    >>> a.copy() is not a
+    True
+    """
 
     __slots__ = ['__data']
 
@@ -778,36 +778,36 @@ class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
 
 class Enumeration(ItemsAsAttributes, BijectiveMap):
     """
-	A convenient way to provide enumerated values
+    A convenient way to provide enumerated values
 
-	>>> e = Enumeration('a b c')
-	>>> e['a']
-	0
+    >>> e = Enumeration('a b c')
+    >>> e['a']
+    0
 
-	>>> e.a
-	0
+    >>> e.a
+    0
 
-	>>> e[1]
-	'b'
+    >>> e[1]
+    'b'
 
-	>>> set(e.names) == set('abc')
-	True
+    >>> set(e.names) == set('abc')
+    True
 
-	>>> set(e.codes) == set(range(3))
-	True
+    >>> set(e.codes) == set(range(3))
+    True
 
-	>>> e.get('d') is None
-	True
+    >>> e.get('d') is None
+    True
 
-	Codes need not start with 0
+    Codes need not start with 0
 
-	>>> e = Enumeration('a b c', range(1, 4))
-	>>> e['a']
-	1
+    >>> e = Enumeration('a b c', range(1, 4))
+    >>> e['a']
+    1
 
-	>>> e[3]
-	'c'
-	"""
+    >>> e[3]
+    'c'
+    """
 
     def __init__(self, names, codes=None):
         if isinstance(names, six.string_types):
@@ -827,18 +827,18 @@ class Enumeration(ItemsAsAttributes, BijectiveMap):
 
 class Everything(object):
     """
-	A collection "containing" every possible thing.
+    A collection "containing" every possible thing.
 
-	>>> 'foo' in Everything()
-	True
+    >>> 'foo' in Everything()
+    True
 
-	>>> import random
-	>>> random.randint(1, 999) in Everything()
-	True
+    >>> import random
+    >>> random.randint(1, 999) in Everything()
+    True
 
-	>>> random.choice([None, 'foo', 42, ('a', 'b', 'c')]) in Everything()
-	True
-	"""
+    >>> random.choice([None, 'foo', 42, ('a', 'b', 'c')]) in Everything()
+    True
+    """
 
     def __contains__(self, other):
         return True
@@ -846,20 +846,20 @@ class Everything(object):
 
 class InstrumentedDict(six.moves.UserDict):
     """
-	Instrument an existing dictionary with additional
-	functionality, but always reference and mutate
-	the original dictionary.
+    Instrument an existing dictionary with additional
+    functionality, but always reference and mutate
+    the original dictionary.
 
-	>>> orig = {'a': 1, 'b': 2}
-	>>> inst = InstrumentedDict(orig)
-	>>> inst['a']
-	1
-	>>> inst['c'] = 3
-	>>> orig['c']
-	3
-	>>> inst.keys() == orig.keys()
-	True
-	"""
+    >>> orig = {'a': 1, 'b': 2}
+    >>> inst = InstrumentedDict(orig)
+    >>> inst['a']
+    1
+    >>> inst['c'] = 3
+    >>> orig['c']
+    3
+    >>> inst.keys() == orig.keys()
+    True
+    """
 
     def __init__(self, data):
         six.moves.UserDict.__init__(self)
@@ -868,24 +868,24 @@ class InstrumentedDict(six.moves.UserDict):
 
 class Least(object):
     """
-	A value that is always lesser than any other
+    A value that is always lesser than any other
 
-	>>> least = Least()
-	>>> 3 < least
-	False
-	>>> 3 > least
-	True
-	>>> least < 3
-	True
-	>>> least <= 3
-	True
-	>>> least > 3
-	False
-	>>> 'x' > least
-	True
-	>>> None > least
-	True
-	"""
+    >>> least = Least()
+    >>> 3 < least
+    False
+    >>> 3 > least
+    True
+    >>> least < 3
+    True
+    >>> least <= 3
+    True
+    >>> least > 3
+    False
+    >>> 'x' > least
+    True
+    >>> None > least
+    True
+    """
 
     def __le__(self, other):
         return True
@@ -900,24 +900,24 @@ class Least(object):
 
 class Greatest(object):
     """
-	A value that is always greater than any other
+    A value that is always greater than any other
 
-	>>> greatest = Greatest()
-	>>> 3 < greatest
-	True
-	>>> 3 > greatest
-	False
-	>>> greatest < 3
-	False
-	>>> greatest > 3
-	True
-	>>> greatest >= 3
-	True
-	>>> 'x' > greatest
-	False
-	>>> None > greatest
-	False
-	"""
+    >>> greatest = Greatest()
+    >>> 3 < greatest
+    True
+    >>> 3 > greatest
+    False
+    >>> greatest < 3
+    False
+    >>> greatest > 3
+    True
+    >>> greatest >= 3
+    True
+    >>> 'x' > greatest
+    False
+    >>> None > greatest
+    False
+    """
 
     def __ge__(self, other):
         return True

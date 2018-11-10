@@ -5,9 +5,9 @@ from jaraco import collections
 
 class AlwaysStringKeysDict(collections.KeyTransformingDict):
     """
-	An implementation of a KeyTransformingDict subclass that always converts
-	the keys to strings.
-	"""
+    An implementation of a KeyTransformingDict subclass that always converts
+    the keys to strings.
+    """
 
     @staticmethod
     def transform_key(key):
@@ -16,8 +16,8 @@ class AlwaysStringKeysDict(collections.KeyTransformingDict):
 
 def test_always_lower_keys_dict():
     """
-	Tests AlwaysLowerKeysDict to ensure KeyTransformingDict works.
-	"""
+    Tests AlwaysLowerKeysDict to ensure KeyTransformingDict works.
+    """
     d = AlwaysStringKeysDict()
     d['farther'] = 'closer'
     d['Lasting'] = 'fleeting'
