@@ -10,10 +10,10 @@ import copy
 import functools
 
 try:
-	import collections.abc
+    import collections.abc
 except ImportError:
-	# Python 2.7
-	collections.abc = collections
+    # Python 2.7
+    collections.abc = collections
 
 import six
 from jaraco.classes.properties import NonDataProperty
@@ -21,7 +21,7 @@ import jaraco.text
 
 
 class Projection(collections.abc.Mapping):
-	"""
+    """
 	Project a set of keys over a mapping
 
 	>>> sample = {'a': 1, 'b': 2, 'c': 3}
@@ -48,24 +48,25 @@ class Projection(collections.abc.Mapping):
 	>>> dict(prj)
 	{'c': 3}
 	"""
-	def __init__(self, keys, space):
-		self._keys = tuple(keys)
-		self._space = space
 
-	def __getitem__(self, key):
-		if key not in self._keys:
-			raise KeyError(key)
-		return self._space[key]
+    def __init__(self, keys, space):
+        self._keys = tuple(keys)
+        self._space = space
 
-	def __iter__(self):
-		return iter(set(self._keys).intersection(self._space))
+    def __getitem__(self, key):
+        if key not in self._keys:
+            raise KeyError(key)
+        return self._space[key]
 
-	def __len__(self):
-		return len(tuple(iter(self)))
+    def __iter__(self):
+        return iter(set(self._keys).intersection(self._space))
+
+    def __len__(self):
+        return len(tuple(iter(self)))
 
 
 class DictFilter(object):
-	"""
+    """
 	Takes a dict, and simulates a sub-dict based on the keys.
 
 	>>> sample = {'a': 1, 'b': 2, 'c': 3}
@@ -93,51 +94,53 @@ class DictFilter(object):
 	True
 
 	"""
-	def __init__(self, dict, include_keys=[], include_pattern=None):
-		self.dict = dict
-		self.specified_keys = set(include_keys)
-		if include_pattern is not None:
-			self.include_pattern = re.compile(include_pattern)
-		else:
-			# for performance, replace the pattern_keys property
-			self.pattern_keys = set()
 
-	def get_pattern_keys(self):
-		keys = filter(self.include_pattern.match, self.dict.keys())
-		return set(keys)
-	pattern_keys = NonDataProperty(get_pattern_keys)
+    def __init__(self, dict, include_keys=[], include_pattern=None):
+        self.dict = dict
+        self.specified_keys = set(include_keys)
+        if include_pattern is not None:
+            self.include_pattern = re.compile(include_pattern)
+        else:
+            # for performance, replace the pattern_keys property
+            self.pattern_keys = set()
 
-	@property
-	def include_keys(self):
-		return self.specified_keys.union(self.pattern_keys)
+    def get_pattern_keys(self):
+        keys = filter(self.include_pattern.match, self.dict.keys())
+        return set(keys)
 
-	def keys(self):
-		return self.include_keys.intersection(self.dict.keys())
+    pattern_keys = NonDataProperty(get_pattern_keys)
 
-	def values(self):
-		keys = self.keys()
-		values = map(self.dict.get, keys)
-		return values
+    @property
+    def include_keys(self):
+        return self.specified_keys.union(self.pattern_keys)
 
-	def __getitem__(self, i):
-		if i not in self.include_keys:
-			return KeyError, i
-		return self.dict[i]
+    def keys(self):
+        return self.include_keys.intersection(self.dict.keys())
 
-	def items(self):
-		keys = self.keys()
-		values = map(self.dict.get, keys)
-		return zip(keys, values)
+    def values(self):
+        keys = self.keys()
+        values = map(self.dict.get, keys)
+        return values
 
-	def __eq__(self, other):
-		return dict(self) == other
+    def __getitem__(self, i):
+        if i not in self.include_keys:
+            return KeyError, i
+        return self.dict[i]
 
-	def __ne__(self, other):
-		return dict(self) != other
+    def items(self):
+        keys = self.keys()
+        values = map(self.dict.get, keys)
+        return zip(keys, values)
+
+    def __eq__(self, other):
+        return dict(self) == other
+
+    def __ne__(self, other):
+        return dict(self) != other
 
 
 def dict_map(function, dictionary):
-	"""
+    """
 	dict_map is much like the built-in function map.  It takes a dictionary
 	and applys a function to the values of that dictionary, returning a
 	new dictionary with the mapped values in the original keys.
@@ -146,11 +149,11 @@ def dict_map(function, dictionary):
 	>>> d == dict(a=2,b=3)
 	True
 	"""
-	return dict((key, function(value)) for key, value in dictionary.items())
+    return dict((key, function(value)) for key, value in dictionary.items())
 
 
 class RangeMap(dict):
-	"""
+    """
 	A dictionary-like object that uses the keys as bounds for a range.
 	Inclusion of the value for that range is determined by the
 	key_match_comparator, which defaults to less-than-or-equal.
@@ -212,62 +215,62 @@ class RangeMap(dict):
 	>>> r.get(7, 'not found')
 	'not found'
 	"""
-	def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
-		dict.__init__(self, source)
-		self.sort_params = sort_params
-		self.match = key_match_comparator
 
-	def __getitem__(self, item):
-		sorted_keys = sorted(self.keys(), **self.sort_params)
-		if isinstance(item, RangeMap.Item):
-			result = self.__getitem__(sorted_keys[item])
-		else:
-			key = self._find_first_match_(sorted_keys, item)
-			result = dict.__getitem__(self, key)
-			if result is RangeMap.undefined_value:
-				raise KeyError(key)
-		return result
+    def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
+        dict.__init__(self, source)
+        self.sort_params = sort_params
+        self.match = key_match_comparator
 
-	def get(self, key, default=None):
-		"""
+    def __getitem__(self, item):
+        sorted_keys = sorted(self.keys(), **self.sort_params)
+        if isinstance(item, RangeMap.Item):
+            result = self.__getitem__(sorted_keys[item])
+        else:
+            key = self._find_first_match_(sorted_keys, item)
+            result = dict.__getitem__(self, key)
+            if result is RangeMap.undefined_value:
+                raise KeyError(key)
+        return result
+
+    def get(self, key, default=None):
+        """
 		Return the value for key if key is in the dictionary, else default.
 		If default is not given, it defaults to None, so that this method
 		never raises a KeyError.
 		"""
-		try:
-			return self[key]
-		except KeyError:
-			return default
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
-	def _find_first_match_(self, keys, item):
-		is_match = functools.partial(self.match, item)
-		matches = list(filter(is_match, keys))
-		if matches:
-			return matches[0]
-		raise KeyError(item)
+    def _find_first_match_(self, keys, item):
+        is_match = functools.partial(self.match, item)
+        matches = list(filter(is_match, keys))
+        if matches:
+            return matches[0]
+        raise KeyError(item)
 
-	def bounds(self):
-		sorted_keys = sorted(self.keys(), **self.sort_params)
-		return (
-			sorted_keys[RangeMap.first_item],
-			sorted_keys[RangeMap.last_item],
-		)
+    def bounds(self):
+        sorted_keys = sorted(self.keys(), **self.sort_params)
+        return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
-	# some special values for the RangeMap
-	undefined_value = type(str('RangeValueUndefined'), (object,), {})()
+        # some special values for the RangeMap
 
-	class Item(int):
-		"RangeMap Item"
-	first_item = Item(0)
-	last_item = Item(-1)
+    undefined_value = type(str('RangeValueUndefined'), (object,), {})()
+
+    class Item(int):
+        "RangeMap Item"
+
+    first_item = Item(0)
+    last_item = Item(-1)
 
 
 def __identity(x):
-	return x
+    return x
 
 
 def sorted_items(d, key=__identity, reverse=False):
-	"""
+    """
 	Return the items of the dictionary sorted by the keys
 
 	>>> sample = dict(foo=20, bar=42, baz=10)
@@ -281,70 +284,72 @@ def sorted_items(d, key=__identity, reverse=False):
 	>>> tuple(sorted_items(sample, reverse=True))
 	(('foo', 20), ('baz', 10), ('bar', 42))
 	"""
-	# wrap the key func so it operates on the first element of each item
-	def pairkey_key(item):
-		return key(item[0])
-	return sorted(d.items(), key=pairkey_key, reverse=reverse)
+    # wrap the key func so it operates on the first element of each item
+    def pairkey_key(item):
+        return key(item[0])
+
+    return sorted(d.items(), key=pairkey_key, reverse=reverse)
 
 
 class KeyTransformingDict(dict):
-	"""
+    """
 	A dict subclass that transforms the keys before they're used.
 	Subclasses may override the default transform_key to customize behavior.
 	"""
-	@staticmethod
-	def transform_key(key):
-		return key
 
-	def __init__(self, *args, **kargs):
-		super(KeyTransformingDict, self).__init__()
-		# build a dictionary using the default constructs
-		d = dict(*args, **kargs)
-		# build this dictionary using transformed keys.
-		for item in d.items():
-			self.__setitem__(*item)
+    @staticmethod
+    def transform_key(key):
+        return key
 
-	def __setitem__(self, key, val):
-		key = self.transform_key(key)
-		super(KeyTransformingDict, self).__setitem__(key, val)
+    def __init__(self, *args, **kargs):
+        super(KeyTransformingDict, self).__init__()
+        # build a dictionary using the default constructs
+        d = dict(*args, **kargs)
+        # build this dictionary using transformed keys.
+        for item in d.items():
+            self.__setitem__(*item)
 
-	def __getitem__(self, key):
-		key = self.transform_key(key)
-		return super(KeyTransformingDict, self).__getitem__(key)
+    def __setitem__(self, key, val):
+        key = self.transform_key(key)
+        super(KeyTransformingDict, self).__setitem__(key, val)
 
-	def __contains__(self, key):
-		key = self.transform_key(key)
-		return super(KeyTransformingDict, self).__contains__(key)
+    def __getitem__(self, key):
+        key = self.transform_key(key)
+        return super(KeyTransformingDict, self).__getitem__(key)
 
-	def __delitem__(self, key):
-		key = self.transform_key(key)
-		return super(KeyTransformingDict, self).__delitem__(key)
+    def __contains__(self, key):
+        key = self.transform_key(key)
+        return super(KeyTransformingDict, self).__contains__(key)
 
-	def get(self, key, *args, **kwargs):
-		key = self.transform_key(key)
-		return super(KeyTransformingDict, self).get(key, *args, **kwargs)
+    def __delitem__(self, key):
+        key = self.transform_key(key)
+        return super(KeyTransformingDict, self).__delitem__(key)
 
-	def setdefault(self, key, *args, **kwargs):
-		key = self.transform_key(key)
-		return super(KeyTransformingDict, self).setdefault(key, *args, **kwargs)
+    def get(self, key, *args, **kwargs):
+        key = self.transform_key(key)
+        return super(KeyTransformingDict, self).get(key, *args, **kwargs)
 
-	def pop(self, key, *args, **kwargs):
-		key = self.transform_key(key)
-		return super(KeyTransformingDict, self).pop(key, *args, **kwargs)
+    def setdefault(self, key, *args, **kwargs):
+        key = self.transform_key(key)
+        return super(KeyTransformingDict, self).setdefault(key, *args, **kwargs)
 
-	def matching_key_for(self, key):
-		"""
+    def pop(self, key, *args, **kwargs):
+        key = self.transform_key(key)
+        return super(KeyTransformingDict, self).pop(key, *args, **kwargs)
+
+    def matching_key_for(self, key):
+        """
 		Given a key, return the actual key stored in self that matches.
 		Raise KeyError if the key isn't found.
 		"""
-		try:
-			return next(e_key for e_key in self.keys() if e_key == key)
-		except StopIteration:
-			raise KeyError(key)
+        try:
+            return next(e_key for e_key in self.keys() if e_key == key)
+        except StopIteration:
+            raise KeyError(key)
 
 
 class FoldedCaseKeyedDict(KeyTransformingDict):
-	"""
+    """
 	A case-insensitive dictionary (keys are compared as insensitive
 	if they are strings).
 
@@ -412,13 +417,14 @@ class FoldedCaseKeyedDict(KeyTransformingDict):
 	>>> print(d.matching_key_for('this'))
 	This
 	"""
-	@staticmethod
-	def transform_key(key):
-		return jaraco.text.FoldedCase(key)
+
+    @staticmethod
+    def transform_key(key):
+        return jaraco.text.FoldedCase(key)
 
 
 class DictAdapter(object):
-	"""
+    """
 	Provide a getitem interface for attributes of an object.
 
 	Let's say you want to get at the string.lowercase property in a formatted
@@ -428,15 +434,16 @@ class DictAdapter(object):
 	>>> print("lowercase is %(ascii_lowercase)s" % DictAdapter(string))
 	lowercase is abcdefghijklmnopqrstuvwxyz
 	"""
-	def __init__(self, wrapped_ob):
-		self.object = wrapped_ob
 
-	def __getitem__(self, name):
-		return getattr(self.object, name)
+    def __init__(self, wrapped_ob):
+        self.object = wrapped_ob
+
+    def __getitem__(self, name):
+        return getattr(self.object, name)
 
 
 class ItemsAsAttributes(object):
-	"""
+    """
 	Mix-in class to enable a mapping object to provide items as
 	attributes.
 
@@ -479,32 +486,34 @@ class ItemsAsAttributes(object):
 	>>> i.foo
 	'missing item'
 	"""
-	def __getattr__(self, key):
-		try:
-			return getattr(super(ItemsAsAttributes, self), key)
-		except AttributeError as e:
-			# attempt to get the value from the mapping (return self[key])
-			#  but be careful not to lose the original exception context.
-			noval = object()
 
-			def _safe_getitem(cont, key, missing_result):
-				try:
-					return cont[key]
-				except KeyError:
-					return missing_result
-			result = _safe_getitem(self, key, noval)
-			if result is not noval:
-				return result
-			# raise the original exception, but use the original class
-			#  name, not 'super'.
-			message, = e.args
-			message = message.replace('super', self.__class__.__name__, 1)
-			e.args = message,
-			raise
+    def __getattr__(self, key):
+        try:
+            return getattr(super(ItemsAsAttributes, self), key)
+        except AttributeError as e:
+            # attempt to get the value from the mapping (return self[key])
+            #  but be careful not to lose the original exception context.
+            noval = object()
+
+            def _safe_getitem(cont, key, missing_result):
+                try:
+                    return cont[key]
+                except KeyError:
+                    return missing_result
+
+            result = _safe_getitem(self, key, noval)
+            if result is not noval:
+                return result
+                # raise the original exception, but use the original class
+                #  name, not 'super'.
+            message, = e.args
+            message = message.replace('super', self.__class__.__name__, 1)
+            e.args = (message,)
+            raise
 
 
 def invert_map(map):
-	"""
+    """
 	Given a dictionary, return another dictionary with keys and values
 	switched. If any of the values resolve to the same key, raises
 	a ValueError.
@@ -519,14 +528,14 @@ def invert_map(map):
 	...
 	ValueError: Key conflict in inverted mapping
 	"""
-	res = dict((v, k) for k, v in map.items())
-	if not len(res) == len(map):
-		raise ValueError('Key conflict in inverted mapping')
-	return res
+    res = dict((v, k) for k, v in map.items())
+    if not len(res) == len(map):
+        raise ValueError('Key conflict in inverted mapping')
+    return res
 
 
 class IdentityOverrideMap(dict):
-	"""
+    """
 	A dictionary that by default maps each key to itself, but otherwise
 	acts like a normal dictionary.
 
@@ -538,12 +547,12 @@ class IdentityOverrideMap(dict):
 	speedo
 	"""
 
-	def __missing__(self, key):
-		return key
+    def __missing__(self, key):
+        return key
 
 
 class DictStack(list, collections.abc.Mapping):
-	"""
+    """
 	A stack of dictionaries that behaves as a view on those dictionaries,
 	giving preference to the last.
 
@@ -568,20 +577,20 @@ class DictStack(list, collections.abc.Mapping):
 	>>> stack.get('b', None)
 	"""
 
-	def keys(self):
-		return list(set(itertools.chain.from_iterable(c.keys() for c in self)))
+    def keys(self):
+        return list(set(itertools.chain.from_iterable(c.keys() for c in self)))
 
-	def __getitem__(self, key):
-		for scope in reversed(self):
-			if key in scope:
-				return scope[key]
-		raise KeyError(key)
+    def __getitem__(self, key):
+        for scope in reversed(self):
+            if key in scope:
+                return scope[key]
+        raise KeyError(key)
 
-	push = list.append
+    push = list.append
 
 
 class BijectiveMap(dict):
-	"""
+    """
 	A Bijective Map (two-way mapping).
 
 	Implemented as a simple dictionary of 2x the size, mapping values back
@@ -641,44 +650,46 @@ class BijectiveMap(dict):
 	>>> 'a' in m
 	False
 	"""
-	def __init__(self, *args, **kwargs):
-		super(BijectiveMap, self).__init__()
-		self.update(*args, **kwargs)
 
-	def __setitem__(self, item, value):
-		if item == value:
-			raise ValueError("Key cannot map to itself")
-		overlap = (
-			item in self and self[item] != value
-			or
-			value in self and self[value] != item
-		)
-		if overlap:
-			raise ValueError("Key/Value pairs may not overlap")
-		super(BijectiveMap, self).__setitem__(item, value)
-		super(BijectiveMap, self).__setitem__(value, item)
+    def __init__(self, *args, **kwargs):
+        super(BijectiveMap, self).__init__()
+        self.update(*args, **kwargs)
 
-	def __delitem__(self, item):
-		self.pop(item)
+    def __setitem__(self, item, value):
+        if item == value:
+            raise ValueError("Key cannot map to itself")
+        overlap = (
+            item in self
+            and self[item] != value
+            or value in self
+            and self[value] != item
+        )
+        if overlap:
+            raise ValueError("Key/Value pairs may not overlap")
+        super(BijectiveMap, self).__setitem__(item, value)
+        super(BijectiveMap, self).__setitem__(value, item)
 
-	def __len__(self):
-		return super(BijectiveMap, self).__len__() // 2
+    def __delitem__(self, item):
+        self.pop(item)
 
-	def pop(self, key, *args, **kwargs):
-		mirror = self[key]
-		super(BijectiveMap, self).__delitem__(mirror)
-		return super(BijectiveMap, self).pop(key, *args, **kwargs)
+    def __len__(self):
+        return super(BijectiveMap, self).__len__() // 2
 
-	def update(self, *args, **kwargs):
-		# build a dictionary using the default constructs
-		d = dict(*args, **kwargs)
-		# build this dictionary using transformed keys.
-		for item in d.items():
-			self.__setitem__(*item)
+    def pop(self, key, *args, **kwargs):
+        mirror = self[key]
+        super(BijectiveMap, self).__delitem__(mirror)
+        return super(BijectiveMap, self).pop(key, *args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        # build a dictionary using the default constructs
+        d = dict(*args, **kwargs)
+        # build this dictionary using transformed keys.
+        for item in d.items():
+            self.__setitem__(*item)
 
 
 class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
-	"""
+    """
 	An immutable mapping.
 
 	>>> a = FrozenDict(a=1, b=2)
@@ -719,48 +730,54 @@ class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
 	>>> a.copy() is not a
 	True
 	"""
-	__slots__ = ['__data']
 
-	def __new__(cls, *args, **kwargs):
-		self = super(FrozenDict, cls).__new__(cls)
-		self.__data = dict(*args, **kwargs)
-		return self
+    __slots__ = ['__data']
 
-	# Container
-	def __contains__(self, key):
-		return key in self.__data
+    def __new__(cls, *args, **kwargs):
+        self = super(FrozenDict, cls).__new__(cls)
+        self.__data = dict(*args, **kwargs)
+        return self
 
-	# Hashable
-	def __hash__(self):
-		return hash(tuple(sorted(self.__data.iteritems())))
+        # Container
 
-	# Mapping
-	def __iter__(self):
-		return iter(self.__data)
+    def __contains__(self, key):
+        return key in self.__data
 
-	def __len__(self):
-		return len(self.__data)
+        # Hashable
 
-	def __getitem__(self, key):
-		return self.__data[key]
+    def __hash__(self):
+        return hash(tuple(sorted(self.__data.iteritems())))
 
-	# override get for efficiency provided by dict
-	def get(self, *args, **kwargs):
-		return self.__data.get(*args, **kwargs)
+        # Mapping
 
-	# override eq to recognize underlying implementation
-	def __eq__(self, other):
-		if isinstance(other, FrozenDict):
-			other = other.__data
-		return self.__data.__eq__(other)
+    def __iter__(self):
+        return iter(self.__data)
 
-	def copy(self):
-		"Return a shallow copy of self"
-		return copy.copy(self)
+    def __len__(self):
+        return len(self.__data)
+
+    def __getitem__(self, key):
+        return self.__data[key]
+
+        # override get for efficiency provided by dict
+
+    def get(self, *args, **kwargs):
+        return self.__data.get(*args, **kwargs)
+
+        # override eq to recognize underlying implementation
+
+    def __eq__(self, other):
+        if isinstance(other, FrozenDict):
+            other = other.__data
+        return self.__data.__eq__(other)
+
+    def copy(self):
+        "Return a shallow copy of self"
+        return copy.copy(self)
 
 
 class Enumeration(ItemsAsAttributes, BijectiveMap):
-	"""
+    """
 	A convenient way to provide enumerated values
 
 	>>> e = Enumeration('a b c')
@@ -791,24 +808,25 @@ class Enumeration(ItemsAsAttributes, BijectiveMap):
 	>>> e[3]
 	'c'
 	"""
-	def __init__(self, names, codes=None):
-		if isinstance(names, six.string_types):
-			names = names.split()
-		if codes is None:
-			codes = itertools.count()
-		super(Enumeration, self).__init__(zip(names, codes))
 
-	@property
-	def names(self):
-		return (key for key in self if isinstance(key, six.string_types))
+    def __init__(self, names, codes=None):
+        if isinstance(names, six.string_types):
+            names = names.split()
+        if codes is None:
+            codes = itertools.count()
+        super(Enumeration, self).__init__(zip(names, codes))
 
-	@property
-	def codes(self):
-		return (self[name] for name in self.names)
+    @property
+    def names(self):
+        return (key for key in self if isinstance(key, six.string_types))
+
+    @property
+    def codes(self):
+        return (self[name] for name in self.names)
 
 
 class Everything(object):
-	"""
+    """
 	A collection "containing" every possible thing.
 
 	>>> 'foo' in Everything()
@@ -821,12 +839,13 @@ class Everything(object):
 	>>> random.choice([None, 'foo', 42, ('a', 'b', 'c')]) in Everything()
 	True
 	"""
-	def __contains__(self, other):
-		return True
+
+    def __contains__(self, other):
+        return True
 
 
 class InstrumentedDict(six.moves.UserDict):
-	"""
+    """
 	Instrument an existing dictionary with additional
 	functionality, but always reference and mutate
 	the original dictionary.
@@ -841,13 +860,14 @@ class InstrumentedDict(six.moves.UserDict):
 	>>> inst.keys() == orig.keys()
 	True
 	"""
-	def __init__(self, data):
-		six.moves.UserDict.__init__(self)
-		self.data = data
+
+    def __init__(self, data):
+        six.moves.UserDict.__init__(self)
+        self.data = data
 
 
 class Least(object):
-	"""
+    """
 	A value that is always lesser than any other
 
 	>>> least = Least()
@@ -867,17 +887,19 @@ class Least(object):
 	True
 	"""
 
-	def __le__(self, other):
-		return True
-	__lt__ = __le__
+    def __le__(self, other):
+        return True
 
-	def __ge__(self, other):
-		return False
-	__gt__ = __ge__
+    __lt__ = __le__
+
+    def __ge__(self, other):
+        return False
+
+    __gt__ = __ge__
 
 
 class Greatest(object):
-	"""
+    """
 	A value that is always greater than any other
 
 	>>> greatest = Greatest()
@@ -897,10 +919,12 @@ class Greatest(object):
 	False
 	"""
 
-	def __ge__(self, other):
-		return True
-	__gt__ = __ge__
+    def __ge__(self, other):
+        return True
 
-	def __le__(self, other):
-		return False
-	__lt__ = __le__
+    __gt__ = __ge__
+
+    def __le__(self, other):
+        return False
+
+    __lt__ = __le__
